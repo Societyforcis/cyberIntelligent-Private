@@ -24,7 +24,6 @@ router.get('/profile/:id', adminController.getProfileById);
 router.put('/profile/:id', adminController.updateProfile);
 router.delete('/profile/:id', adminController.deleteProfile);
 
-// Announcement routes
 router.post('/announcements', adminController.sendAnnouncement);
 
 export default router;
