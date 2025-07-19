@@ -21,17 +21,44 @@ export const registerMembership = async (req, res) => {
     res.status(500).json({ success: false, message: "Error processing membership", error: error.message });
   }
 };
-
 // Get membership by email
 export const getMembershipByEmail = async (req, res) => {
   try {
     const { email } = req.params;
-    const membership = await Membership.findOne({ email });
-    if (!membership) {
-      return res.status(404).json({ success: false, message: "Membership not found" });
+    console.log('🔍 Fetching membership for email:', email);
+    
+    if (!email) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Email is required" 
+      });
     }
-    res.json({ success: true, membership });
+
+    const membership = await Membership.findOne({ email });
+    console.log('📄 Membership found:', membership ? 'Yes' : 'No');
+    
+    if (!membership) {
+      console.log('No membership found for email:', email);
+      return res.status(404).json({ 
+        success: false, 
+        message: `Membership not found for email: ${email}` 
+      });
+    }
+
+    // Send the raw membership data
+    return res.json({
+      success: true,
+      membership
+    });
+    
   } catch (error) {
-    res.status(500).json({ success: false, message: "Error fetching membership", error: error.message });
+    console.error('❌ Error in getMembershipByEmail:', error.message);
+    console.error('Error details:', error);
+    
+    return res.status(500).json({ 
+      success: false, 
+      message: "Error fetching membership", 
+      error: error.message 
+    });
   }
-}; 
+};

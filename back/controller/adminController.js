@@ -1,6 +1,7 @@
 import Membership from '../models/Membership.js';
 import Profile from '../models/Profile.js';
 import User from '../models/User.js';
+import Notification from '../models/Notification.js';
 
 // Membership Controllers
 export const getAllMemberships = async (req, res) => {
@@ -250,7 +251,57 @@ const deleteUser = async (req, res) => {
 
 // You would add other admin functions here like updateUser, etc.
 
+export const sendAnnouncement = async (req, res) => {
+  try {
+    const { title, message, type = 'admin' } = req.body;
+
+    if (!title || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and message are required'
+      });
+    }
+
+    // Get all users
+    const users = await User.find({}, '_id');
+    const notifications = [];
+
+    // Create a notification for each user
+    for (const user of users) {
+      const notification = new Notification({
+        recipient: user._id,
+        title,
+        message,
+        type,
+        link: '/announcements' // or any relevant link
+      });
+      notifications.push(notification.save());
+    }
+
+    await Promise.all(notifications);
+
+    res.status(201).json({
+      success: true,
+      message: 'Announcement sent to all users',
+      data: {
+        title,
+        message,
+        type,
+        recipients: users.length
+      }
+    });
+  } catch (error) {
+    console.error('Error sending announcement:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error sending announcement',
+      error: error.message
+    });
+  }
+};
+
 export {
     getAllUsers,
     deleteUser,
+    // sendAnnouncement,
 };

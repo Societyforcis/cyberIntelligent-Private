@@ -1,16 +1,42 @@
 import express from 'express';
-import { verifyJWT, isAdmin } from '../middleware/auth.js';
-import * as notificationController from '../controllers/notificationController.js';
+import {
+  createNotification,
+  getAllNotifications,
+  getUserNotifications,
+  getUnreadCount,
+  markAsRead,
+  markAllAsRead,
+  deleteNotification
+} from '../controller/notificationController.js';
 
 const router = express.Router();
 
-// User routes
-router.get('/my', verifyJWT, notificationController.getUserNotifications);
-router.put('/:id/read', verifyJWT, notificationController.markAsRead);
-router.delete('/:id', verifyJWT, notificationController.deleteNotification);
+// Public routes (for development)
+router.get('/me', (req, res) => {
+  // For development, use a default user ID or get from query params
+  req.user = { _id: req.query.userId || '65f8e4b7d4f8a8c8f8f8f8f8' };
+  return getUserNotifications(req, res);
+});
 
-// Admin routes
-router.post('/create', verifyJWT, isAdmin, notificationController.createNotification);
-router.get('/all', verifyJWT, isAdmin, notificationController.getAllNotifications);
+router.get('/unread-count', (req, res) => {
+  req.user = { _id: req.query.userId || '65f8e4b7d4f8a8c8f8f8f8f8' };
+  return getUnreadCount(req, res);
+});
+
+router.patch('/:id/read', (req, res) => {
+  req.user = { _id: req.query.userId || '65f8e4b7d4f8a8c8f8f8f8f8' };
+  return markAsRead(req, res);
+});
+
+// Add mark all as read route
+router.patch('/mark-all-read', (req, res) => {
+  req.user = { _id: req.query.userId || '65f8e4b7d4f8a8c8f8f8f8f8' };
+  return markAllAsRead(req, res);
+});
+
+// Admin routes (no authentication for development)
+router.post('/ok', createNotification);
+router.get('/all', getAllNotifications);
+router.delete('/:id', deleteNotification);
 
 export default router;
